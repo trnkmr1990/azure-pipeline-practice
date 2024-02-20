@@ -34,8 +34,10 @@ steps:
     publishLocation: 'pipeline'
   displayName: 'Publish npm artifact'
 
+
 - task: Npm@1
   inputs:
-    command: publish
-    publishRegistry: useFeed
-    publishFeed: NPM test/holi
+    command: 'publish'
+    workingDir: '($Agent.BuildDirectory)'
+    publishRegistry: 'useFeed'
+    publishFeed: 'NPM test/holi'
