@@ -38,6 +38,6 @@ steps:
 - task: Npm@1
   inputs:
     command: 'publish'
-    workingDir: '$(Build.Repository.LocalPath)/package'
+    workingDir: '$(Build.Repository.LocalPath)'
     publishRegistry: 'useFeed'
     publishFeed: 'NPM test/holi'
