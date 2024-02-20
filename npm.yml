@@ -35,6 +35,9 @@ steps:
 
 - task: Npm@1
   inputs:
+- task: Npm@1
+  inputs:
+    command: 'install'
     command: publish
     publishRegistry: useFeed
     publishFeed: NPM test/holi
