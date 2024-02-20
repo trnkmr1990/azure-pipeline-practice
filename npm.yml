@@ -37,4 +37,4 @@ steps:
   inputs:
     command: publish
     publishRegistry: useFeed
-    publishFeed: SebsTest/holi
+    publishFeed: NPM test/holi
