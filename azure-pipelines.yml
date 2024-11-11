@@ -3,8 +3,16 @@
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
+pr:
+  branches:
+    include:
+      - main  # Trigger the pipeline on PRs targeting the 'main' branch
+      - feature/*
+
 trigger:
-- main  # Trigger the pipeline on changes to the 'main' branch
+  branches:
+    include:
+      - main  # This triggers the pipeline on push to 'main' branch, as already defined
 
 pool:
   vmImage: 'ubuntu-latest'  # Use a Linux-based VM image (you can change this to 'windows-latest' or 'macos-latest' if needed)
