@@ -33,7 +33,7 @@ stages:
           inputs:
             outputfile: '$(Build.ArtifactStagingDirectory)/releasenotes.md'  # Path to output the release notes file
             templateLocation: 'inline'  # Use an inline template for generating the release notes
-            customHandlebarsExtensionCode: |
+            inlinetemplate: |
               ## Build {{buildDetails.buildNumber}}
               * **Branch**: {{buildDetails.sourceBranch}}
               * **Tags**: {{buildDetails.tags}}
