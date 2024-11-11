@@ -45,20 +45,41 @@ stages:
                 {{#forEach pullRequests}}
                   * **[{{this.pullRequestId}}]({{replace (replace this.url "_apis/git/repositories" "_git") "pullRequests" "pullRequest"}})** {{this.title}}
                   * Associated Work Items
-                  {{#forEach this.associatedWorkitems}}
-                    {{#with (lookup_a_work_item ../../relatedWorkItems this.url)}}
-                      - [{{this.id}}]({{replace this.url "_apis/wit/workItems" "_workitems/edit"}}) - {{lookup this.fields 'System.Title'}}
-                    {{/with}}
-                  {{/forEach}}
+                  {{#if this.associatedWorkitems.length}}
+                    {{#forEach this.associatedWorkitems}}
+                      {{#with (lookup_a_work_item ../../relatedWorkItems this.url)}}
+                        - [{{this.id}}]({{replace this.url "_apis/wit/workItems" "_workitems/edit"}}) - {{lookup this.fields 'System.Title'}}
+                      {{/with}}
+                    {{/forEach}}
+                  {{else}}
+                    No associated work items.
+                  {{/if}}
+                  * Associated Commits
+                  {{#if this.associatedCommits.length}}
+                    {{#forEach this.associatedCommits}}
+                      - [{{this.commitId}}]({{this.remoteUrl}}) -  {{this.comment}}
+                    {{/forEach}}
+                  {{else}}
+                    No associated commits.
+                  {{/if}}
                 {{/forEach}}
               {{else}}
                 No pull requests found.
               {{/if}}
-
+              
               ## Associated Commits
               {{#forEach commits}}
                 - [{{this.commitId}}]({{this.remoteUrl}}) -  {{this.comment}}
               {{/forEach}}
+
+              ## Related Work Items
+              {{#if relatedWorkItems.length}}
+                {{#forEach relatedWorkItems}}
+                  - [{{this.id}}]({{replace this.url "_apis/wit/workItems" "_workitems/edit"}}) - {{lookup this.fields 'System.Title'}}
+                {{/forEach}}
+              {{else}}
+                No related work items.
+              {{/if}}
             # You can add more parameters here to customize the release notes
 
         - publish: $(Build.ArtifactStagingDirectory)/releasenotes.md  # Publish the release notes as an artifact
