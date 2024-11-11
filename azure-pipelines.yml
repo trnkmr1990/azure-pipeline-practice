@@ -34,11 +34,14 @@ stages:
             outputfile: '$(Build.ArtifactStagingDirectory)/releasenotes.md'  # Path to output the release notes file
             templateLocation: 'inline'  # Use an inline template for generating the release notes
             customHandlebarsExtensionCode: |
-              module.exports = {
-                foo() {
-                  return 'Returns foo';
-                }
-              }
+              # Global list of CS ({{commits.length}})
+              {{#forEach commits}}
+              {{#if isFirst}}### Associated commits{{/if}}
+              * ** ID{{this.id}}**
+                -  **Message:** {{this.message}}
+                -  **Commited by:** {{this.author.displayName}}
+                -  **FileCount:** {{this.changes.length}}
+              {{/forEach}}
             # You can add more parameters here to customize the release notes
 
         - publish: $(Build.ArtifactStagingDirectory)/releasenotes.md  # Publish the release notes as an artifact
