@@ -41,46 +41,82 @@ stages:
               * **Previous Build**: {{compareBuildDetails.buildNumber}}
 
               ## Associated Pull Requests ({{pullRequests.length}})
-              {{#if pullRequests.length}}
-                {{#forEach pullRequests}}
-                  * **[{{this.pullRequestId}}]({{replace (replace this.url "_apis/git/repositories" "_git") "pullRequests" "pullRequest"}})** {{this.title}}
-                  * Associated Work Items
-                  {{#if this.associatedWorkitems.length}}
-                    {{#forEach this.associatedWorkitems}}
-                      {{#with (lookup_a_work_item ../../relatedWorkItems this.url)}}
-                        - [{{this.id}}]({{replace this.url "_apis/wit/workItems" "_workitems/edit"}}) - {{lookup this.fields 'System.Title'}}
-                      {{/with}}
-                    {{/forEach}}
-                  {{else}}
-                    No associated work items.
-                  {{/if}}
-                  * Associated Commits
-                  {{#if this.associatedCommits.length}}
-                    {{#forEach this.associatedCommits}}
-                      - [{{this.commitId}}]({{this.remoteUrl}}) -  {{this.comment}}
-                    {{/forEach}}
-                  {{else}}
-                    No associated commits.
-                  {{/if}}
-                {{/forEach}}
-              {{else}}
-                No pull requests found.
-              {{/if}}
-              
-              ## Associated Commits
-              {{#forEach commits}}
-                - [{{this.commitId}}]({{this.remoteUrl}}) -  {{this.comment}}
+              {{#forEach pullRequests}}
+              * **[{{this.pullRequestId}}]({{replace (replace this.url "_apis/git/repositories" "_git") "pullRequests" "pullRequest"}})** {{this.title}}
+              * Associated Work Items
+              {{#forEach this.associatedWorkitems}}
+                {{#with (lookup_a_work_item ../../relatedWorkItems this.url)}}
+                  - [{{this.id}}]({{replace this.url "_apis/wit/workItems" "_workitems/edit"}}) - {{lookup this.fields 'System.Title'}}
+                {{/with}}
+              {{/forEach}}
+              * Associated Commits (this includes commits on the PR source branch not associated directly with the build)
+              {{#forEach this.associatedCommits}}
+                  - [{{this.commitId}}]({{this.remoteUrl}}) -  {{this.comment}}
+              {{/forEach}}
               {{/forEach}}
 
-              ## Related Work Items
-              {{#if relatedWorkItems.length}}
-                {{#forEach relatedWorkItems}}
-                  - [{{this.id}}]({{replace this.url "_apis/wit/workItems" "_workitems/edit"}}) - {{lookup this.fields 'System.Title'}}
-                {{/forEach}}
-              {{else}}
-                No related work items.
+              # Global list of WI with PRs, parents and children
+              {{#forEach this.workItems}}
+              {{#if isFirst}}### WorkItems {{/if}}
+              *  **{{this.id}}**  {{lookup this.fields 'System.Title'}}
+                - **WIT** {{lookup this.fields 'System.WorkItemType'}}
+                - **Tags** {{lookup this.fields 'System.Tags'}}
+                - **Assigned** {{#with (lookup this.fields 'System.AssignedTo')}} {{displayName}} {{/with}}
+                - **Description** {{{lookup this.fields 'System.Description'}}}
+                - **PRs**
+              {{#forEach this.relations}}
+              {{#if (contains this.attributes.name 'Pull Request')}}
+              {{#with (lookup_a_pullrequest ../../pullRequests  this.url)}}
+                    - {{this.pullRequestId}} - {{this.title}}
+              {{/with}}
               {{/if}}
-            # You can add more parameters here to customize the release notes
+              {{/forEach}}
+                - **Parents**
+              {{#forEach this.relations}}
+              {{#if (contains this.attributes.name 'Parent')}}
+              {{#with (lookup_a_work_item ../../relatedWorkItems  this.url)}}
+                    - {{this.id}} - {{lookup this.fields 'System.Title'}}
+                    {{#forEach this.relations}}
+                    {{#if (contains this.attributes.name 'Parent')}}
+                    {{#with (lookup_a_work_item ../../../../relatedWorkItems  this.url)}}
+                      - {{this.id}} - {{lookup this.fields 'System.Title'}}
+                    {{/with}}
+                    {{/if}}
+                    {{/forEach}}
+              {{/with}}
+              {{/if}}
+              {{/forEach}}
+                - **Children**
+              {{#forEach this.relations}}
+              {{#if (contains this.attributes.name 'Child')}}
+              {{#with (lookup_a_work_item ../../relatedWorkItems  this.url)}}
+                    - {{this.id}} - {{lookup this.fields 'System.Title'}}
+              {{/with}}
+              {{/if}}
+              {{/forEach}}
+                - **Tested By**
+              {{#forEach this.relations}}
+              {{#if (contains this.attributes.name 'Tested By')}}
+              {{#with (lookup_a_work_item ../../testedByWorkItems  this.url)}}
+                    - {{this.id}} - {{lookup this.fields 'System.Title'}}
+              {{/with}}
+              {{/if}}
+              {{/forEach}}
+              {{/forEach}}
+
+              # Global list of CS ({{commits.length}})
+              {{#forEach commits}}
+              {{#if isFirst}}### Associated commits{{/if}}
+              * ** ID{{this.id}}**
+                -  **Message:** {{this.message}}
+                -  **Commited by:** {{this.author.displayName}}
+                -  **FileCount:** {{this.changes.length}}
+              {{#forEach this.changes}}
+                    -  **File path (TFVC or TfsGit):** {{this.item.path}}
+                    -  **File filename (GitHub):** {{this.filename}}
+              {{/forEach}}
+              {{/forEach}}
+            # You can add more parameters here to customize the release note
 
         - publish: $(Build.ArtifactStagingDirectory)/releasenotes.md  # Publish the release notes as an artifact
           artifact: releaseNotes
