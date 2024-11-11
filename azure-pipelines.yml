@@ -4,18 +4,68 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
-- main
+- main  # Trigger the pipeline on changes to the 'main' branch
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'  # Use a Linux-based VM image (you can change this to 'windows-latest' or 'macos-latest' if needed)
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '20.x'
-  displayName: 'Install Node.js'
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+    - job: BuildJob
+      displayName: 'Build Job'
+      steps:
+        - checkout: self
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
+        - task: NodeTool@0
+          inputs:
+            versionSpec: '16.x'  # Specify the version of Node.js (you can change this as needed)
+          displayName: 'Install Node.js'
+
+        - task: npm@1
+          inputs:
+            command: 'install'  # Install dependencies from package.json
+          displayName: 'Install dependencies'
+
+        - task: XplatGenerateReleaseNotes@4
+          displayName: 'Generate Release Notes'
+          inputs:
+            outputfile: '$(Build.ArtifactStagingDirectory)/releasenotes.md'  # Path to output the release notes file
+            templateLocation: 'inline'  # Use an inline template for generating the release notes
+            customHandlebarsExtensionCode: |
+              module.exports = {
+                foo() {
+                  return 'Returns foo';
+                }
+              }
+            # You can add more parameters here to customize the release notes
+
+        - publish: $(Build.ArtifactStagingDirectory)/releasenotes.md  # Publish the release notes as an artifact
+          artifact: releaseNotes
+          displayName: 'Publish Release Notes Artifact'
+
+        # Add other build tasks like linting, building, and testing here
+        - task: npm@1
+          inputs:
+            command: 'custom'  # Run tests (adjust this based on your project)
+            customCommand: 'test'
+          displayName: 'Run Tests'
+
+- stage: Deploy
+  displayName: 'Deploy Stage'
+  dependsOn: Build
+  jobs:
+    - job: DeployJob
+      displayName: 'Deploy Job'
+      steps:
+        - download: current  # Download artifacts from the Build stage
+          artifact: releaseNotes
+          displayName: 'Download Release Notes Artifact'
+
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publish Artifact'
+          inputs:
+            artifactName: 'releaseNotes'
+            targetPath: '$(Pipeline.Workspace)/releaseNotes'
+
