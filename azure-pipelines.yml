@@ -49,8 +49,8 @@ stages:
               * **Previous Build**: {{compareBuildDetails.buildNumber}}
 
               ## Associated Pull Requests 
-              ({{#if pullRequests}})
-                ({{#if pullRequests.length}})
+              {{#if pullRequests}}
+                {{#if pullRequests.length}}
                   {{#forEach pullRequests}}
                     * **[{{this.pullRequestId}}]({{replace (replace this.url "_apis/git/repositories" "_git") "pullRequests" "pullRequest"}})** {{this.title}}
                     * Associated Work Items
@@ -120,18 +120,33 @@ stages:
               {{/forEach}}
               {{/forEach}}
 
-              # Global list of CS ({{commits?.length}})
-              {{#forEach commits}}
-              {{#if isFirst}}### Associated commits{{/if}}
-              * ** ID{{this.id}}**
-                -  **Message:** {{this.message}}
-                -  **Commited by:** {{this.author.displayName}}
-                -  **FileCount:** {{this.changes?.length}}
-              {{#forEach this.changes}}
-                    -  **File path (TFVC or TfsGit):** {{this.item.path}}
-                    -  **File filename (GitHub):** {{this.filename}}
-              {{/forEach}}
-              {{/forEach}}
+              # Global list of CS 
+              {{#if commits}}
+                {{#if commits.length}}
+                  {{#forEach commits}}
+                    {{#if isFirst}}### Associated commits{{/if}}
+                    * ** ID{{this.id}}**
+                      -  **Message:** {{this.message}}
+                      -  **Commited by:** {{this.author.displayName}}
+                      -  **FileCount:** 
+                      {{#if this.changes}}
+                        {{#if this.changes.length}}
+                          {{this.changes.length}}
+                        {{/if}}
+                      {{else}}
+                        <p>No changes</p>
+                      {{/if}}
+                    {{#forEach this.changes}}
+                          -  **File path (TFVC or TfsGit):** {{this.item.path}}
+                          -  **File filename (GitHub):** {{this.filename}}
+                    {{/forEach}}
+                  {{/forEach}}
+                {{else}}
+                  <p>No commits length</p>
+                {{/if}}
+              {{else}}
+                <p>No commits</p>
+              {{/if}}
             # You can add more parameters here to customize the release note
 
         - publish: $(Build.ArtifactStagingDirectory)/releasenotes.md  # Publish the release notes as an artifact
