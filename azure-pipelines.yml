@@ -6,7 +6,7 @@
 pr:
   branches:
     include:
-      - main  # Trigger the pipeline on PRs targeting the 'main' branch
+      - main  # Trigger the pipeline on PRs targeting the 'main' branch.
       - feature/*
 
 trigger:
